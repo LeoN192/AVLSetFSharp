@@ -140,3 +140,38 @@ module Tree =
         match n with
         | Empty -> Empty
         | Node(h, v, ln, rn) -> Node(h, v, copy ln, copy rn)
+
+module AVLSet = 
+    let empty = Empty
+
+    let add value set = 
+        Tree.insert value set
+
+    let delete value set = 
+        Tree.remove value set
+
+    let contains value set = 
+        Tree.contains value set
+
+    let copy set = 
+        Tree.copy set
+
+    let unionTraversal set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let unSet = Tree.copy maxSet
+        Tree.traversal (fun set value -> Tree.insert value set) unSet minSet 
+
+    let intersectionTraversal set1 set2 = 
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        Tree.traversal (fun set value -> 
+            if Tree.contains value maxSet then Tree.insert value set else set) Empty minSet 
+
+    let differenceTraversal minuendSet subtrahendSet =
+        let diffSet = Tree.copy minuendSet
+        Tree.traversal (fun set value -> Tree.remove value set) diffSet subtrahendSet
+
+    let symmDifferenceTraversal set1 set2 = 
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let symmSet = Tree.copy maxSet
+        Tree.traversal (fun set value -> 
+            if Tree.contains value maxSet then Tree.remove value set else Tree.insert value set) symmSet minSet
