@@ -1,4 +1,6 @@
-namespace AVLSet.Library
+﻿namespace AVLSet.Library
+
+open System.Threading.Tasks
 
 type AVLTree<'value> =
     | Empty
@@ -128,12 +130,12 @@ module Tree =
             | value when value < v -> contains value ln
             | _ -> contains value rn
 
-    let rec traversal (func: AVLTree<'b> -> 'a -> AVLTree<'b>) nArg n = 
+    let rec traversal (func: 'a -> AVLTree<'b> -> AVLTree<'b>) nArg n = 
         match n with
         | Empty -> nArg
         | Node(_, v, ln, rn) ->
             let newNArg = traversal func nArg ln
-            let newNArg2 = func newNArg v
+            let newNArg2 = func v newNArg
             traversal func newNArg2 rn
 
     let rec copy n =
@@ -246,19 +248,85 @@ module AVLSet =
     let unionTraversal set1 set2 =
         let maxSet, minSet = Node.maxMinNodes set1 set2
         let unSet = Tree.copy maxSet
-        Tree.traversal (fun set value -> Tree.insert value set) unSet minSet 
+        Tree.traversal (fun value set -> Tree.insert value set) unSet minSet 
 
     let intersectionTraversal set1 set2 = 
         let maxSet, minSet = Node.maxMinNodes set1 set2
-        Tree.traversal (fun set value -> 
+        Tree.traversal (fun value set -> 
             if Tree.contains value maxSet then Tree.insert value set else set) Empty minSet 
 
     let differenceTraversal minuendSet subtrahendSet =
         let diffSet = Tree.copy minuendSet
-        Tree.traversal (fun set value -> Tree.remove value set) diffSet subtrahendSet
+        Tree.traversal (fun value set -> Tree.remove value set) diffSet subtrahendSet
 
     let symmDifferenceTraversal set1 set2 = 
         let maxSet, minSet = Node.maxMinNodes set1 set2
         let symmSet = Tree.copy maxSet
-        Tree.traversal (fun set value -> 
+        Tree.traversal (fun value set -> 
             if Tree.contains value maxSet then Tree.remove value set else Tree.insert value set) symmSet minSet
+            
+    let rec parallelUnion (opts: ParallelOptions) set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> minSet 
+        | _, Empty -> maxSet
+        | Node(_, v, ln, rn), _ ->
+            let lesser, greater, _ = Tree.split v minSet
+            let mutable leftUnion = Empty
+            let mutable rightUnion = Empty
+            Parallel.Invoke(
+                opts, 
+                (fun () -> leftUnion <- parallelUnion opts ln lesser),
+                (fun () -> rightUnion <- parallelUnion opts rn greater)
+            )
+            Tree.join leftUnion v rightUnion
+
+    let rec parallelIntersection (opts: ParallelOptions) set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> Empty 
+        | _, Empty -> Empty
+        | Node(_, v, ln, rn), _ ->
+            let lesser, greater, wasFound = Tree.split v minSet
+            let mutable leftInter = Empty
+            let mutable rightInter = Empty
+            Parallel.Invoke(
+                opts,
+                (fun () -> leftInter <- parallelIntersection opts ln lesser),
+                (fun () -> rightInter <- parallelIntersection opts rn greater)
+            )
+            if wasFound then Tree.join leftInter v rightInter
+            else Tree.merge leftInter rightInter
+
+    let rec parallelDifference (opts: ParallelOptions) minuendSet subtrahendSet =
+        match minuendSet, subtrahendSet with
+        | Empty, _ -> Empty
+        | _, Empty -> minuendSet
+        | Node(_, v, ln, rn), _ ->
+            let lesser, greater, wasFound = Tree.split v subtrahendSet
+            let mutable leftDiff = Empty
+            let mutable rightDiff = Empty
+            Parallel.Invoke(
+                opts,
+                (fun () -> leftDiff <- parallelDifference opts ln lesser),
+                (fun () -> rightDiff <- parallelDifference opts rn greater)
+            )
+            if wasFound then Tree.merge leftDiff rightDiff
+            else Tree.join leftDiff v rightDiff
+
+    let rec parallelSymmDifference (opts: ParallelOptions) set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> minSet 
+        | _, Empty -> maxSet
+        | Node(_, v, ln, rn), _ ->
+            let lesser, greater, wasFound = Tree.split v minSet
+            let mutable leftSymm = Empty
+            let mutable rightSymm = Empty
+            Parallel.Invoke(
+                opts,
+                (fun () -> leftSymm <- parallelSymmDifference opts ln lesser),
+                (fun () -> rightSymm <- parallelSymmDifference opts rn greater)
+            )
+            if wasFound then Tree.merge leftSymm rightSymm
+            else Tree.join leftSymm v rightSymm
