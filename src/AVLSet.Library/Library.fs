@@ -1,4 +1,4 @@
-﻿namespace AVLSet.Library
+namespace AVLSet.Library
 
 type AVLTree<'value> =
     | Empty
@@ -78,3 +78,65 @@ module Tree =
                     RRrotate (Node(0, v, ln, rn))
                 else RLrotate (Node(0, v, ln, rn))
             | _ -> Node(max lnHeight rnHeight + 1, v, ln, rn)
+
+    let rec minNode n = 
+        match n with
+        | Empty -> failwith "Empty node has no value"
+        | Node(_, v, Empty, rn) -> v, rn
+        | Node(_, v, ln, rn) -> 
+                let value, lnNew = minNode ln
+                value, balance lnNew rn v
+
+    let rec insert value n = 
+        match n with
+        | Empty -> Node(0, value, Empty, Empty)
+        | Node(h, v, ln, rn) -> 
+            match value with
+            | value when value = v -> n
+            | value when value < v -> 
+                let lnNew = insert value ln
+                balance lnNew rn v
+            | _ ->
+                let rnNew = insert value rn
+                balance ln rnNew v
+
+    let rec remove value n = 
+        match n with
+        | Empty -> Empty
+        | Node(h, v, ln, rn) -> 
+            match value with
+            | value when value = v -> 
+                match ln, rn with
+                | Empty, _ -> rn
+                | _, Empty -> ln
+                | _, _ -> 
+                    let newValue, rnNew = minNode rn
+                    balance ln rnNew newValue
+            | value when value < v ->
+                let lnNew = remove value ln
+                balance lnNew rn v
+            | _ ->
+                let rnNew = remove value rn
+                balance ln rnNew v
+
+    let rec contains value n = 
+        match n with
+        | Empty -> false
+        | Node(h, v, ln, rn) -> 
+            match value with
+            | value when value = v -> true
+            | value when value < v -> contains value ln
+            | _ -> contains value rn
+
+    let rec traversal (func: AVLTree<'b> -> 'a -> AVLTree<'b>) nArg n = 
+        match n with
+        | Empty -> nArg
+        | Node(_, v, ln, rn) ->
+            let newNArg = traversal func nArg ln
+            let newNArg2 = func newNArg v
+            traversal func newNArg2 rn
+
+    let rec copy n =
+        match n with
+        | Empty -> Empty
+        | Node(h, v, ln, rn) -> Node(h, v, copy ln, copy rn)
