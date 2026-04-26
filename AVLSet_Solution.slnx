@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/AVLSet.Benchmarks/AVLSet.Benchmarks.fsproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/AVLSet.Library/AVLSet.Library.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AVLSet.UnitTests/AVLSet.UnitTests.fsproj" />
+  </Folder>
+</Solution>
