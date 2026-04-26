@@ -141,6 +141,47 @@ module Tree =
         | Empty -> Empty
         | Node(h, v, ln, rn) -> Node(h, v, copy ln, copy rn)
 
+    let rec join left key right =
+        let leftHeight = Node.height left
+        let rightHeight = Node.height right
+        match leftHeight - rightHeight with 
+        | diff when abs diff <= 1 ->
+            Node(max leftHeight rightHeight + 1, key, left, right)
+        | diff when diff >= 2 ->
+            match left with 
+            | Empty -> failwith "Unreacheable message"
+            | Node (h, v, ln, rn) -> 
+                let rnNew = join rn key right
+                balance ln rnNew v
+        | _ -> 
+            match right with 
+            | Empty -> failwith "Unreacheable message"
+            | Node (h, v, ln, rn) -> 
+                let lnNew = join left key ln
+                balance lnNew rn v
+
+    let merge left right = 
+        match left, right with
+        | Empty, _ -> right
+        | _, Empty -> left
+        | _, _ ->
+            let key, newRight = minNode right
+            join left key newRight
+
+    let rec split key n = 
+        match n with
+        | Empty -> Empty, Empty, false
+        | Node(_, v, ln, rn) ->
+            match key with
+            | key when key = v -> 
+                ln, rn, true
+            | key when key < v -> 
+                let lesser, greater, wasFound = split key ln
+                lesser, join greater v rn, wasFound
+            | _ -> 
+                let lesser, greater, wasFound = split key rn
+                join ln v lesser, greater, wasFound
+
 module AVLSet = 
     let empty = Empty
 
@@ -155,6 +196,52 @@ module AVLSet =
 
     let copy set = 
         Tree.copy set
+
+    let rec union set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> minSet
+        | _, Empty -> maxSet
+        | Node(_, v, ln, rn), _ -> 
+            let lesser, greater, _ = Tree.split v minSet
+            let leftUnion = union ln lesser
+            let rightUnion = union rn greater
+            Tree.join leftUnion v rightUnion
+    
+    let rec intersection set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> Empty
+        | _, Empty -> Empty
+        | Node(_, v, ln, rn), _ -> 
+            let lesser, greater, wasFound = Tree.split v minSet
+            let leftInter = intersection ln lesser
+            let rightInter = intersection rn greater
+            if wasFound then Tree.join leftInter v rightInter
+            else Tree.merge leftInter rightInter
+
+    let rec difference minuendSet subtrahendSet =
+        match minuendSet, subtrahendSet with
+        | Empty, _ -> Empty
+        | _, Empty -> minuendSet
+        | Node(_, v, ln, rn), _ -> 
+            let lesser, greater, wasFound = Tree.split v subtrahendSet
+            let leftDiff = difference ln lesser
+            let rightDiff = difference rn greater
+            if wasFound then Tree.merge leftDiff rightDiff
+            else Tree.join leftDiff v rightDiff
+
+    let rec symmDifference set1 set2 =
+        let maxSet, minSet = Node.maxMinNodes set1 set2
+        match maxSet, minSet with
+        | Empty, _ -> minSet
+        | _, Empty -> maxSet
+        | Node(_, v, ln, rn), _ -> 
+            let lesser, greater, wasFound = Tree.split v minSet
+            let leftSymm = symmDifference ln lesser
+            let rightSymm = symmDifference rn greater
+            if wasFound then Tree.merge leftSymm rightSymm
+            else Tree.join leftSymm v rightSymm
 
     let unionTraversal set1 set2 =
         let maxSet, minSet = Node.maxMinNodes set1 set2
