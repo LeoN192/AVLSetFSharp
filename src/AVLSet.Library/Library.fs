@@ -2,9 +2,9 @@
 
 open System.Threading.Tasks
 
-type AVLTree<'value> =
+type AVLTree<'Value> =
     | Empty
-    | Node of int * 'value * AVLTree<'value> * AVLTree<'value>
+    | Node of int * 'Value * AVLTree<'Value> * AVLTree<'Value>
 
 module Node =
     let height n =
@@ -27,7 +27,7 @@ module Node =
         | Empty -> failwith "Empty node has no right child"
         | Node(_, _, _, rn) -> rn
 
-    let maxMinNodes n1 n2 =
+    let maxMinNodesByHeights n1 n2 =
         if height n1 >= height n2 then n1, n2 else n2, n1
 
 module Tree =
@@ -82,7 +82,7 @@ module Tree =
 
     let rec minNode n =
         match n with
-        | Empty -> failwith "Empty node has no value"
+        | Empty -> failwith "minNode: cannot find minimum of an empty node"
         | Node(_, v, Empty, rn) -> v, rn
         | Node(_, v, ln, rn) ->
             let value, lnNew = minNode ln
@@ -120,6 +120,7 @@ module Tree =
                 let rnNew = remove value rn
                 balance ln rnNew v
 
+    [<TailCall>]
     let rec contains value n =
         match n with
         | Empty -> false
@@ -129,7 +130,7 @@ module Tree =
             | value when value < v -> contains value ln
             | _ -> contains value rn
 
-    let rec traversal (func: 'a -> AVLTree<'b> -> AVLTree<'b>) nArg n =
+    let rec traversal (func: 'A -> AVLTree<'B> -> AVLTree<'B>) nArg n =
         match n with
         | Empty -> nArg
         | Node(_, v, ln, rn) ->
@@ -150,13 +151,13 @@ module Tree =
         | diff when abs diff <= 1 -> Node(max leftHeight rightHeight + 1, key, left, right)
         | diff when diff >= 2 ->
             match left with
-            | Empty -> failwith "Unreacheable message"
+            | Empty -> failwith "Unreacheable message 1"
             | Node(h, v, ln, rn) ->
                 let rnNew = join rn key right
                 balance ln rnNew v
         | _ ->
             match right with
-            | Empty -> failwith "Unreacheable message"
+            | Empty -> failwith "Unreacheable message 2"
             | Node(h, v, ln, rn) ->
                 let lnNew = join left key ln
                 balance lnNew rn v
@@ -194,7 +195,7 @@ module AVLSet =
     let copy set = Tree.copy set
 
     let rec union set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> minSet
@@ -206,7 +207,7 @@ module AVLSet =
             Tree.join leftUnion v rightUnion
 
     let rec intersection set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> Empty
@@ -236,7 +237,7 @@ module AVLSet =
                 Tree.join leftDiff v rightDiff
 
     let rec symmDifference set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> minSet
@@ -252,12 +253,12 @@ module AVLSet =
                 Tree.join leftSymm v rightSymm
 
     let unionTraversal set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
         let unSet = Tree.copy maxSet
-        Tree.traversal (fun value set -> Tree.insert value set) unSet minSet
+        Tree.traversal Tree.insert unSet minSet
 
     let intersectionTraversal set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         Tree.traversal
             (fun value set ->
@@ -270,10 +271,10 @@ module AVLSet =
 
     let differenceTraversal minuendSet subtrahendSet =
         let diffSet = Tree.copy minuendSet
-        Tree.traversal (fun value set -> Tree.remove value set) diffSet subtrahendSet
+        Tree.traversal Tree.remove diffSet subtrahendSet
 
     let symmDifferenceTraversal set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
         let symmSet = Tree.copy maxSet
 
         Tree.traversal
@@ -286,7 +287,7 @@ module AVLSet =
             minSet
 
     let rec parallelUnion (opts: ParallelOptions) set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> minSet
@@ -305,7 +306,7 @@ module AVLSet =
             Tree.join leftUnion v rightUnion
 
     let rec parallelIntersection (opts: ParallelOptions) set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> Empty
@@ -347,7 +348,7 @@ module AVLSet =
                 Tree.join leftDiff v rightDiff
 
     let rec parallelSymmDifference (opts: ParallelOptions) set1 set2 =
-        let maxSet, minSet = Node.maxMinNodes set1 set2
+        let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
         match maxSet, minSet with
         | Empty, _ -> minSet

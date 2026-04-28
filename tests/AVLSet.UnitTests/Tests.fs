@@ -22,7 +22,7 @@ module SetTests =
             && isSetValid ln mn (Some v)
             && isSetValid rn (Some v) mx
 
-    let rec advancedContains (condition: 'a -> bool -> bool) setOfValues targetSet =
+    let rec advancedContains (condition: 'A -> bool -> bool) setOfValues targetSet =
         match setOfValues with
         | Empty -> true
         | Node(_, v, ln, rn) ->
@@ -281,8 +281,8 @@ module SetTests =
 
         isSetValid unionSet None None |> should be True
 
-        (advancedContains (fun v x -> x = true) setA unionSet
-         && advancedContains (fun v x -> x = true) setB unionSet)
+        (advancedContains (fun v x -> x) setA unionSet
+         && advancedContains (fun v x -> x) setB unionSet)
         |> should be True
 
         AVLSet.union setB setA |> should equal unionSet
@@ -293,7 +293,7 @@ module SetTests =
 
         isSetValid intersectionSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = true else x = false) setA intersectionSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
         |> should be True
 
         AVLSet.intersection setB setA |> should equal intersectionSet
@@ -304,7 +304,7 @@ module SetTests =
 
         isSetValid differenceSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA differenceSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
         |> should be True
 
     [<Fact>]
@@ -313,8 +313,8 @@ module SetTests =
 
         isSetValid symmDiffSet None None |> should be True
 
-        (advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then x = false else x = true) setB symmDiffSet)
+        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA symmDiffSet
+         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
         |> should be True
 
         AVLSet.symmDifference setB setA |> should equal symmDiffSet
@@ -325,8 +325,8 @@ module SetTests =
 
         isSetValid unionSet None None |> should be True
 
-        (advancedContains (fun v x -> x = true) setA unionSet
-         && advancedContains (fun v x -> x = true) setB unionSet)
+        (advancedContains (fun v x -> x) setA unionSet
+         && advancedContains (fun v x -> x) setB unionSet)
         |> should be True
 
         AVLSet.unionTraversal setB setA |> should equal unionSet
@@ -337,7 +337,7 @@ module SetTests =
 
         isSetValid intersectionSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = true else x = false) setA intersectionSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
         |> should be True
 
         AVLSet.intersectionTraversal setB setA |> should equal intersectionSet
@@ -348,7 +348,7 @@ module SetTests =
 
         isSetValid differenceSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA differenceSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
         |> should be True
 
     [<Fact>]
@@ -357,8 +357,8 @@ module SetTests =
 
         isSetValid symmDiffSet None None |> should be True
 
-        (advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then x = false else x = true) setB symmDiffSet)
+        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x = true) setA symmDiffSet
+         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
         |> should be True
 
         AVLSet.symmDifferenceTraversal setB setA |> should equal symmDiffSet
@@ -371,8 +371,8 @@ module SetTests =
 
         isSetValid unionSet None None |> should be True
 
-        (advancedContains (fun v x -> x = true) setA unionSet
-         && advancedContains (fun v x -> x = true) setB unionSet)
+        (advancedContains (fun v x -> x) setA unionSet
+         && advancedContains (fun v x -> x) setB unionSet)
         |> should be True
 
         AVLSet.parallelUnion opts setB setA |> should equal unionSet
@@ -385,7 +385,7 @@ module SetTests =
 
         isSetValid intersectionSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = true else x = false) setA intersectionSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
         |> should be True
 
         AVLSet.parallelIntersection opts setB setA |> should equal intersectionSet
@@ -398,7 +398,7 @@ module SetTests =
 
         isSetValid differenceSet None None |> should be True
 
-        advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA differenceSet
+        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
         |> should be True
 
     [<Fact>]
@@ -409,8 +409,8 @@ module SetTests =
 
         isSetValid symmDiffSet None None |> should be True
 
-        (advancedContains (fun v x -> if AVLSet.contains v setB then x = false else x = true) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then x = false else x = true) setB symmDiffSet)
+        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA symmDiffSet
+         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
         |> should be True
 
         AVLSet.parallelSymmDifference opts setB setA |> should equal symmDiffSet
