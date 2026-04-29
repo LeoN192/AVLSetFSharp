@@ -130,13 +130,13 @@ module Tree =
             | value when value < v -> contains value ln
             | _ -> contains value rn
 
-    let rec traversal (func: 'A -> AVLTree<'B> -> AVLTree<'B>) nArg n =
+    let rec traverse (func: 'A -> AVLTree<'B> -> AVLTree<'B>) nArg n =
         match n with
         | Empty -> nArg
         | Node(_, v, ln, rn) ->
-            let newNArg = traversal func nArg ln
+            let newNArg = traverse func nArg ln
             let newNArg2 = func v newNArg
-            traversal func newNArg2 rn
+            traverse func newNArg2 rn
 
     let rec copy n =
         match n with
@@ -255,12 +255,12 @@ module AVLSet =
     let unionTraversal set1 set2 =
         let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
         let unSet = Tree.copy maxSet
-        Tree.traversal Tree.insert unSet minSet
+        Tree.traverse Tree.insert unSet minSet
 
     let intersectionTraversal set1 set2 =
         let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
 
-        Tree.traversal
+        Tree.traverse
             (fun value set ->
                 if Tree.contains value maxSet then
                     Tree.insert value set
@@ -271,13 +271,13 @@ module AVLSet =
 
     let differenceTraversal minuendSet subtrahendSet =
         let diffSet = Tree.copy minuendSet
-        Tree.traversal Tree.remove diffSet subtrahendSet
+        Tree.traverse Tree.remove diffSet subtrahendSet
 
     let symmDifferenceTraversal set1 set2 =
         let maxSet, minSet = Node.maxMinNodesByHeights set1 set2
         let symmSet = Tree.copy maxSet
 
-        Tree.traversal
+        Tree.traverse
             (fun value set ->
                 if Tree.contains value maxSet then
                     Tree.remove value set
