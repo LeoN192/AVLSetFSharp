@@ -109,6 +109,6 @@ The `AVLSet` module provides a comprehensive interface:
 /benchmarks
 └── AVLSet.Benchmarks    
     ├── AVLSet.Benchmarks.fsproj
-    ├── Program.fs
-    └── Bemchmarks.fs
+    ├── Benchmarks.fs
+    └── Program.fs
 ```
