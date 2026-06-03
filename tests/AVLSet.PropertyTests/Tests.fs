@@ -13,8 +13,8 @@ module SetPropertyTests =
             let isInBounds =
                 mn |> Option.forall (fun mn -> v > mn) && mx |> Option.forall (fun mx -> v < mx)
 
-            let lnHeight = Node.height ln
-            let rnHeight = Node.height rn
+            let lnHeight = Tree.height ln
+            let rnHeight = Tree.height rn
 
             isInBounds
             && h = (max lnHeight rnHeight + 1)

@@ -1,7 +1,12 @@
 open BenchmarkDotNet.Running
-open AVLSet.Benchmarks
 
 [<EntryPoint>]
-let main args =
-    BenchmarkRunner.Run<SetBenchmarks>() |> ignore
+let main argv =
+    let benchmarks =
+        BenchmarkSwitcher
+            [| typeof<AVLSet.Benchmarks.SingleOpsBenchmark>
+               typeof<AVLSet.Benchmarks.SequentialSetsBenchmark>
+               typeof<AVLSet.Benchmarks.ParallelSetsBenchmark> |]
+
+    benchmarks.Run argv |> ignore
     0
