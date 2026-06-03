@@ -86,8 +86,8 @@ The `AVLSet` module provides a comprehensive interface:
 |:---|:---|:---|
 | **add** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Adds an element. |
 | **delete** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Removes an element. |
-| **contains** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Copies an set. |
-| **copy** | `'a -> AVLTree<'a> -> bool` | Checks membership. |
+| **contains** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Checks membership. |
+| **copy** | `'a -> AVLTree<'a> -> bool` | Copies an set. |
 | **union** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard union ($A \cup B$). |
 | **intersection** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard intersection ($A \cap B$). |
 | **difference** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard difference ($A \setminus B$). |
