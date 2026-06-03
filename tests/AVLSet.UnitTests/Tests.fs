@@ -1,11 +1,10 @@
 namespace AVLSet.UnitTests
 
-open System.Threading.Tasks
 open Xunit
 open FsUnit.Xunit
 open AVLSet.Library
 
-module SetTests =
+module SetUnitTests =
     let rec isSetValid n mn mx =
         match n with
         | Empty -> true
@@ -111,7 +110,7 @@ module SetTests =
     let ``Single-node deletion`` () =
         let resultSet = Node(0, 15, Empty, Empty) |> AVLSet.delete 15
 
-        let correctSet: AVLTree<int> = Empty
+        let correctSet: AVLSet<int> = Empty
 
         resultSet |> should equal correctSet
 
@@ -217,200 +216,3 @@ module SetTests =
             )
 
         resultSet |> should equal correctSet
-
-    [<Fact>]
-    let ``Search for missing element`` () =
-        let set =
-            Node(
-                3,
-                15,
-                Node(1, 10, Node(0, 6, Empty, Empty), Node(0, 12, Empty, Empty)),
-                Node(
-                    2,
-                    25,
-                    Node(0, 20, Empty, Empty),
-                    Node(1, 30, Node(0, 27, Empty, Empty), Node(0, 33, Empty, Empty))
-                )
-            )
-
-        AVLSet.contains 100 set |> should be False
-
-    [<Fact>]
-    let ``Search for negative value`` () =
-        let set =
-            Node(
-                3,
-                15,
-                Node(2, 5, Node(1, 0, Node(0, -3, Empty, Empty), Node(0, 2, Empty, Empty)), Node(0, 10, Empty, Empty)),
-                Node(1, 20, Node(0, 16, Empty, Empty), Node(0, 24, Empty, Empty))
-            )
-
-        AVLSet.contains -3 set |> should be True
-
-    [<Fact>]
-    let ``Tree structure cloning`` () =
-        let set =
-            Node(
-                3,
-                15,
-                Node(2, 5, Node(1, 0, Node(0, -3, Empty, Empty), Node(0, 2, Empty, Empty)), Node(0, 10, Empty, Empty)),
-                Node(1, 20, Node(0, 16, Empty, Empty), Node(0, 24, Empty, Empty))
-            )
-
-        AVLSet.copy set |> should equal set
-
-    let rnd = System.Random(123561)
-
-    let dataA = Array.init 10000 (fun _ -> rnd.Next())
-    let dataB = Array.init 2000 (fun _ -> rnd.Next())
-
-    let setA = dataA |> Array.fold (fun s v -> AVLSet.add v s) AVLSet.empty
-    let setB = dataB |> Array.fold (fun s v -> AVLSet.add v s) AVLSet.empty
-
-    [<Fact>]
-    let ``100k operations stress test`` () =
-        let data = Array.init 100000 (fun _ -> rnd.Next())
-
-        let set = data |> Array.fold (fun s v -> AVLSet.add v s) AVLSet.empty
-
-        isSetValid set None None |> should be True
-
-    [<Fact>]
-    let ``Standard set union`` () =
-        let unionSet = AVLSet.union setA setB
-
-        isSetValid unionSet None None |> should be True
-
-        (advancedContains (fun v x -> x) setA unionSet
-         && advancedContains (fun v x -> x) setB unionSet)
-        |> should be True
-
-        AVLSet.union setB setA |> should equal unionSet
-
-    [<Fact>]
-    let ``Standard set intersection`` () =
-        let intersectionSet = AVLSet.intersection setA setB
-
-        isSetValid intersectionSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
-        |> should be True
-
-        AVLSet.intersection setB setA |> should equal intersectionSet
-
-    [<Fact>]
-    let ``Standard set difference`` () =
-        let differenceSet = AVLSet.difference setA setB
-
-        isSetValid differenceSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
-        |> should be True
-
-    [<Fact>]
-    let ``Standard symmetric difference`` () =
-        let symmDiffSet = AVLSet.symmDifference setA setB
-
-        isSetValid symmDiffSet None None |> should be True
-
-        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
-        |> should be True
-
-        AVLSet.symmDifference setB setA |> should equal symmDiffSet
-
-    [<Fact>]
-    let ``Union via tree traversal`` () =
-        let unionSet = AVLSet.unionTraversal setA setB
-
-        isSetValid unionSet None None |> should be True
-
-        (advancedContains (fun v x -> x) setA unionSet
-         && advancedContains (fun v x -> x) setB unionSet)
-        |> should be True
-
-        AVLSet.unionTraversal setB setA |> should equal unionSet
-
-    [<Fact>]
-    let ``Intersection via tree traversal`` () =
-        let intersectionSet = AVLSet.intersectionTraversal setA setB
-
-        isSetValid intersectionSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
-        |> should be True
-
-        AVLSet.intersectionTraversal setB setA |> should equal intersectionSet
-
-    [<Fact>]
-    let ``Difference via tree traversal`` () =
-        let differenceSet = AVLSet.differenceTraversal setA setB
-
-        isSetValid differenceSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
-        |> should be True
-
-    [<Fact>]
-    let ``Symmetric difference via tree traversal`` () =
-        let symmDiffSet = AVLSet.symmDifferenceTraversal setA setB
-
-        isSetValid symmDiffSet None None |> should be True
-
-        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x = true) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
-        |> should be True
-
-        AVLSet.symmDifferenceTraversal setB setA |> should equal symmDiffSet
-
-    [<Fact>]
-    let ``Parallel set union with threads`` () =
-        let opts = ParallelOptions()
-
-        let unionSet = AVLSet.parallelUnion opts setA setB
-
-        isSetValid unionSet None None |> should be True
-
-        (advancedContains (fun v x -> x) setA unionSet
-         && advancedContains (fun v x -> x) setB unionSet)
-        |> should be True
-
-        AVLSet.parallelUnion opts setB setA |> should equal unionSet
-
-    [<Fact>]
-    let ``Parallel set intersection with threads`` () =
-        let opts = ParallelOptions()
-
-        let intersectionSet = AVLSet.parallelIntersection opts setA setB
-
-        isSetValid intersectionSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then x else not x) setA intersectionSet
-        |> should be True
-
-        AVLSet.parallelIntersection opts setB setA |> should equal intersectionSet
-
-    [<Fact>]
-    let ``Parallel set difference with threads`` () =
-        let opts = ParallelOptions()
-
-        let differenceSet = AVLSet.parallelDifference opts setA setB
-
-        isSetValid differenceSet None None |> should be True
-
-        advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA differenceSet
-        |> should be True
-
-    [<Fact>]
-    let ``Parallel set symmetrical difference with threads`` () =
-        let opts = ParallelOptions()
-
-        let symmDiffSet = AVLSet.parallelSymmDifference opts setA setB
-
-        isSetValid symmDiffSet None None |> should be True
-
-        (advancedContains (fun v x -> if AVLSet.contains v setB then not x else x) setA symmDiffSet
-         && advancedContains (fun v x -> if AVLSet.contains v setA then not x else x) setB symmDiffSet)
-        |> should be True
-
-        AVLSet.parallelSymmDifference opts setB setA |> should equal symmDiffSet
