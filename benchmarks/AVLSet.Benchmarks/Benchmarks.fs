@@ -1,132 +1,184 @@
 ﻿namespace AVLSet.Benchmarks
 
-open System.Threading.Tasks
-open BenchmarkDotNet.Diagnosers
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Configs
 open AVLSet.Library
+open AVLSet.Library.Parallel
 
 [<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)>]
 [<CategoriesColumn>]
 [<HtmlExporter>]
 [<MemoryDiagnoser>]
-[<ThreadingDiagnoser>]
-[<HardwareCounters(HardwareCounter.CacheMisses, HardwareCounter.BranchMispredictions)>]
-type SetBenchmarks() =
+type SingleOpsBenchmark() =
     let rnd = System.Random(1234561)
 
-    [<Params(100, 10000, 1000000)>]
+    [<Params(100, 10000, 100000)>]
     [<DefaultValue>]
     val mutable public A: int
-
-    [<Params(100, 1000, 100000)>]
-    [<DefaultValue>]
-    val mutable public B: int
-
-    [<Params("Random", "Sorted")>]
-    [<DefaultValue>]
-    val mutable public DataTypeA: string
-
-    [<Params(1, 2, 4, 8)>]
-    [<DefaultValue>]
-    val mutable public Threads: int
 
     [<DefaultValue>]
     val mutable public rndInt: int
 
     [<DefaultValue>]
-    val mutable public setA: AVLTree<int>
-
-    [<DefaultValue>]
-    val mutable public setB: AVLTree<int>
+    val mutable public setA: AVLSet<int>
 
     [<GlobalSetup>]
     member self.Setup() =
         self.rndInt <- rnd.Next(self.A + 1, self.A + 1000)
 
-        let dataA =
-            match self.DataTypeA with
-            | "Random" -> Array.init self.A (fun _ -> rnd.Next())
-            | _ -> [| 1 .. self.A |]
+        let dataA = Array.init self.A (fun _ -> rnd.Next())
 
-        let dataB = Array.init self.B (fun _ -> rnd.Next())
-
-        self.setA <- dataA |> Array.fold (fun s v -> AVLSet.add v s) AVLSet.empty
-        self.setB <- dataB |> Array.fold (fun s v -> AVLSet.add v s) AVLSet.empty
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
     [<Benchmark>]
     [<BenchmarkCategory("Adding")>]
-    member self.``Adding one element``() = AVLSet.add self.rndInt self.setA
+    member self.AddingOneElement() = AVLSet.add self.rndInt self.setA
 
     [<Benchmark>]
     [<BenchmarkCategory("Deleting")>]
-    member self.``Deleting one element``() = AVLSet.delete self.rndInt self.setA
+    member self.DeletingOneElement() = AVLSet.delete self.rndInt self.setA
+
+
+[<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)>]
+[<CategoriesColumn>]
+[<HtmlExporter>]
+[<MemoryDiagnoser>]
+type SequentialSetsBenchmark() =
+    let rnd = System.Random(1234561)
+
+    [<Params(100, 10000, 100000)>]
+    [<DefaultValue>]
+    val mutable public A: int
+
+    [<Params(100, 10000)>]
+    [<DefaultValue>]
+    val mutable public B: int
+
+    [<DefaultValue>]
+    val mutable public setA: AVLSet<int>
+
+    [<DefaultValue>]
+    val mutable public setB: AVLSet<int>
+
+    [<GlobalSetup>]
+    member self.Setup() =
+        let dataA = Array.init self.A (fun _ -> rnd.Next())
+
+        let dataB = Array.init self.B (fun _ -> rnd.Next())
+
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+
+        self.setB <- dataB |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
     [<Benchmark(Baseline = true)>]
     [<BenchmarkCategory("Union")>]
-    member self.``Sequential union``() = AVLSet.union self.setA self.setB
+    member self.SequentialUnion() = AVLSet.union self.setA self.setB
 
     [<Benchmark>]
     [<BenchmarkCategory("Union")>]
-    member self.``Union via tree traversal``() =
-        AVLSet.unionTraversal self.setA self.setB
-
-    [<Benchmark>]
-    [<BenchmarkCategory("Union")>]
-    member self.``Parallel union with threads``() =
-        let opts = ParallelOptions()
-        opts.MaxDegreeOfParallelism <- self.Threads
-
-        AVLSet.parallelUnion opts self.setA self.setB
+    member self.UnionViaTreeTraversal() =
+        AVLSet.Traversal.union self.setA self.setB
 
     [<Benchmark(Baseline = true)>]
     [<BenchmarkCategory("Intersection")>]
-    member self.``Sequential intersection``() = AVLSet.intersection self.setA self.setB
+    member self.SequentialIntersection() = AVLSet.intersection self.setA self.setB
 
     [<Benchmark>]
     [<BenchmarkCategory("Intersection")>]
-    member self.``Intersection via tree traversal``() =
-        AVLSet.intersectionTraversal self.setA self.setB
-
-    [<Benchmark>]
-    [<BenchmarkCategory("Intersection")>]
-    member self.``Parallel intersection with threads``() =
-        let opts = ParallelOptions()
-        opts.MaxDegreeOfParallelism <- self.Threads
-
-        AVLSet.parallelIntersection opts self.setA self.setB
+    member self.IntersectionViaTreeTraversal() =
+        AVLSet.Traversal.intersection self.setA self.setB
 
     [<Benchmark(Baseline = true)>]
     [<BenchmarkCategory("Difference")>]
-    member self.``Sequential difference``() = AVLSet.difference self.setA self.setB
+    member self.SequentialDifference() = AVLSet.difference self.setA self.setB
 
     [<Benchmark>]
     [<BenchmarkCategory("Difference")>]
-    member self.``Difference via tree traversal``() =
-        AVLSet.differenceTraversal self.setA self.setB
-
-    [<Benchmark>]
-    [<BenchmarkCategory("Difference")>]
-    member self.``Parallel difference with threads``() =
-        let opts = ParallelOptions()
-        opts.MaxDegreeOfParallelism <- self.Threads
-
-        AVLSet.parallelDifference opts self.setA self.setB
+    member self.DifferenceViaTreeTraversal() =
+        AVLSet.Traversal.difference self.setA self.setB
 
     [<Benchmark(Baseline = true)>]
     [<BenchmarkCategory("Symmetrical Difference")>]
-    member self.``Sequential symmetrical difference``() =
+    member self.SequentialSymmetricalDifference() =
         AVLSet.symmDifference self.setA self.setB
 
     [<Benchmark>]
     [<BenchmarkCategory("Symmetrical Difference")>]
-    member self.``Symmetrical difference via tree traversal``() =
-        AVLSet.symmDifferenceTraversal self.setA self.setB
+    member self.SymmetricalDifferenceViaTreeTraversal() =
+        AVLSet.Traversal.symmDifference self.setA self.setB
+
+
+[<ShortRunJob>]
+[<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)>]
+[<CategoriesColumn>]
+[<HtmlExporter>]
+[<MemoryDiagnoser>]
+[<ThreadingDiagnoser>]
+type ParallelSetsBenchmark() =
+    let rnd = System.Random(1234561)
+
+    [<Params(1000, 10000, 100000)>]
+    [<DefaultValue>]
+    val mutable public A: int
+
+    [<Params(100, 10000)>]
+    [<DefaultValue>]
+    val mutable public B: int
+
+    [<Params(1, 2, 4)>]
+    [<DefaultValue>]
+    val mutable public threads: int
+
+    [<DefaultValue>]
+    val mutable public setA: AVLSet<int>
+
+    [<DefaultValue>]
+    val mutable public setB: AVLSet<int>
+
+    [<GlobalSetup>]
+    member self.Setup() =
+        let dataA = Array.init self.A (fun _ -> rnd.Next())
+
+        let dataB = Array.init self.B (fun _ -> rnd.Next())
+
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+
+        self.setB <- dataB |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+
+
+    [<Benchmark(Baseline = true)>]
+    [<BenchmarkCategory("Union")>]
+    member self.SequentialUnion() = AVLSet.union self.setA self.setB
+
+    [<Benchmark>]
+    [<BenchmarkCategory("Union")>]
+    member self.ParallelUnionWithThreads() =
+        ParallelAVLSet.union (Some self.threads) self.setA self.setB
+
+    [<Benchmark(Baseline = true)>]
+    [<BenchmarkCategory("Intersection")>]
+    member self.SequentialIntersection() = AVLSet.intersection self.setA self.setB
+
+    [<Benchmark>]
+    [<BenchmarkCategory("Intersection")>]
+    member self.ParallelIntersectionWithThreads() =
+        ParallelAVLSet.intersection (Some self.threads) self.setA self.setB
+
+    [<Benchmark(Baseline = true)>]
+    [<BenchmarkCategory("Difference")>]
+    member self.SequentialDifference() = AVLSet.difference self.setA self.setB
+
+    [<Benchmark>]
+    [<BenchmarkCategory("Difference")>]
+    member self.ParallelDifferenceWithThreads() =
+        ParallelAVLSet.difference (Some self.threads) self.setA self.setB
+
+    [<Benchmark(Baseline = true)>]
+    [<BenchmarkCategory("Symmetrical Difference")>]
+    member self.SequentialSymmetricalDifference() =
+        AVLSet.symmDifference self.setA self.setB
 
     [<Benchmark>]
     [<BenchmarkCategory("Symmetrical Difference")>]
-    member self.``Parallel symmetrical difference with threads``() =
-        let opts = ParallelOptions()
-        opts.MaxDegreeOfParallelism <- self.Threads
-
-        AVLSet.parallelSymmDifference opts self.setA self.setB
+    member self.ParallelSymmetricalDifferenceWithThreads() =
+        ParallelAVLSet.symmDifference (Some self.threads) self.setA self.setB

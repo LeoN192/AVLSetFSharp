@@ -6,6 +6,7 @@
     <Project Path="src/AVLSet.Library/AVLSet.Library.fsproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AVLSet.PropertyTests/AVLSet.PropertyTests.fsproj" />
     <Project Path="tests/AVLSet.UnitTests/AVLSet.UnitTests.fsproj" />
   </Folder>
 </Solution>
