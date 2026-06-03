@@ -86,29 +86,41 @@ The `AVLSet` module provides a comprehensive interface:
 |:---|:---|:---|
 | **add** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Adds an element. |
 | **delete** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Removes an element. |
-| **contains** | `'a -> AVLTree<'a> -> bool` | Checks membership. |
+| **contains** | `'a -> AVLTree<'a> -> AVLTree<'a>` | Checks membership. |
+| **copy** | `'a -> AVLTree<'a> -> bool` | Copies an set. |
 | **union** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard union ($A \cup B$). |
 | **intersection** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard intersection ($A \cap B$). |
 | **difference** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard difference ($A \setminus B$). |
 | **symmDifference** | `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Standard symmetrical difference ($A \vartriangle B$). |
-| **parallel(Union/Intersection/Difference/SymmDiff)**| `ParallelOptions -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Multi-threaded set-theoretic operations. |
-| **(union/intersection/difference/symmDiff)Traversal**| `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Set-theoretic operations via tree traversal. |
+| **Traversal.{union/intersection/difference/symmDiff}**| `AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Set-theoretic operations via tree traversal. |
+
+The `ParallelAVLSet` module provides an interface for parallel set-theoretic operations:
+| **union** | `option<int> -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Parallel union ($A \cup B$). |
+| **intersection** | `option<int> -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Parallel intersection ($A \cap B$). |
+| **difference** | `option<int> -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Parallel difference ($A \setminus B$). |
+| **symmDifference** | `option<int> -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Parallel symmetrical difference ($A \vartriangle B$). |
+| **{union/intersection/difference/symmDiff}Async** | `option<int> -> AVLTree<'a> -> AVLTree<'a> -> AVLTree<'a>` | Creates an asynchronous computation for set-theoretic operations. |
 
 ---
 
 ## Project Structure
 ```text
 /src
-└── AVLSet.Library       
-    ├── AVLSet.Library.fsproj
-    └── Library.fs
+    └── AVLSet.Library    
+        ├── AssemblyInfo.fs
+        ├── AVLSet.Library.fsproj
+        ├── Library.fs
+        └── LibraryParallel.fs
 /tests
-└── AVLSet.UnitTests     
-    ├── AVLSet.UnitTests.fsproj
-    └── Tests.fs
+    └── AVLSet.UnitTests     
+    │   ├── AVLSet.UnitTests.fsproj
+    │   └── Tests.fs
+    └── AVLSet.PropertyTests     
+        ├── AVLSet.PropertyTests.fsproj
+        └── Tests.fs
 /benchmarks
-└── AVLSet.Benchmarks    
-    ├── AVLSet.Benchmarks.fsproj
-    ├── Benchmarks.fs
-    └── Program.fs
+    └── AVLSet.Benchmarks    
+        ├── AVLSet.Benchmarks.fsproj
+        ├── Benchmarks.fs
+        └── Program.fs
 ```
