@@ -28,10 +28,7 @@ type SingleOpsBenchmark() =
 
         let dataA = Array.init self.A (fun _ -> rnd.Next())
 
-        self.setA <-
-            dataA
-            |> Array.fold
-                (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
     [<Benchmark>]
     [<BenchmarkCategory("Adding")>]
@@ -69,15 +66,9 @@ type SequentialSetsBenchmark() =
 
         let dataB = Array.init self.B (fun _ -> rnd.Next())
 
-        self.setA <-
-            dataA
-            |> Array.fold
-                (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
-        self.setB <-
-            dataB
-            |> Array.fold
-                (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+        self.setB <- dataB |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
     [<Benchmark(Baseline = true)>]
     [<BenchmarkCategory("Union")>]
@@ -150,15 +141,9 @@ type ParallelSetsBenchmark() =
 
         let dataB = Array.init self.B (fun _ -> rnd.Next())
 
-        self.setA <-
-            dataA
-            |> Array.fold
-                (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+        self.setA <- dataA |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
-        self.setB <-
-            dataB
-            |> Array.fold
-                (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
+        self.setB <- dataB |> Array.fold (fun (set: AVLSet<int>) v -> AVLSet.add v set) AVLSet.empty
 
 
     [<Benchmark(Baseline = true)>]

@@ -34,13 +34,13 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Adding elemements to set`` (elements: int list) =
-        let set = elements |> List.fold (fun t x -> AVLSet.add x t) AVLSet.empty 
+        let set = elements |> List.fold (fun t x -> AVLSet.add x t) AVLSet.empty
 
-        let rec setContainsList list set = 
+        let rec setContainsList list set =
             match list with
-            | [ ] -> true
+            | [] -> true
             | head :: tail -> AVLSet.contains head set && setContainsList tail set
-            
+
         isSetValid set None None |> should be True
         setContainsList elements set |> should be True
 
@@ -49,10 +49,10 @@ module SetPropertyTests =
         let set = elements |> List.fold (fun t x -> AVLSet.add x t) AVLSet.empty
 
         AVLSet.copy set |> should equal set
-    
+
     [<Property>]
     let ``Deleting elements from set`` (elements: int list) =
-        let set = elements |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let set = elements |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let emptySet = elements |> List.fold (fun t e -> AVLSet.delete e t) set
         let empty: AVLSet<int> = AVLSet.empty
 
@@ -60,8 +60,8 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Standard set union`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
-        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
+        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let unionSet = AVLSet.union setA setB
 
         isSetValid unionSet None None |> should be True
@@ -79,8 +79,8 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Standard set intersection`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
-        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
+        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let intersectionSet = AVLSet.intersection setA setB
 
         isSetValid intersectionSet None None |> should be True
@@ -96,8 +96,8 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Standard set difference`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
-        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
+        let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let differenceSet = AVLSet.difference setA setB
 
         isSetValid differenceSet None None |> should be True
@@ -107,7 +107,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Standard symmetric difference`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = AVLSet.symmDifference setA setB
 
@@ -125,7 +125,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Union via tree traversal`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let unionSet = AVLSet.Traversal.union setA setB
 
@@ -143,7 +143,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Intersection via tree traversal`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let intersectionSet = AVLSet.Traversal.intersection setA setB
 
@@ -160,7 +160,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Difference via tree traversal`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let differenceSet = AVLSet.Traversal.difference setA setB
 
@@ -171,7 +171,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Symmetric difference via tree traversal`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = AVLSet.Traversal.symmDifference setA setB
 
@@ -189,7 +189,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Parallel set union with threads`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let unionSet = ParallelAVLSet.union None setA setB
 
@@ -207,7 +207,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Parallel set intersection with threads`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let intersectionSet = ParallelAVLSet.intersection None setA setB
 
@@ -224,7 +224,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Parallel set difference with threads`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let differenceSet = ParallelAVLSet.difference None setA setB
 
@@ -235,7 +235,7 @@ module SetPropertyTests =
 
     [<Property>]
     let ``Parallel set symmetric difference with threads`` (elementsA: int list, elementsB: int list) =
-        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty 
+        let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = ParallelAVLSet.symmDifference None setA setB
 
