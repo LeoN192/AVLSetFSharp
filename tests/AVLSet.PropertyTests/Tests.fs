@@ -106,7 +106,7 @@ module SetPropertyTests =
         |> should be True
 
     [<Property>]
-    let ``Standard symmetric difference`` (elementsA: int list, elementsB: int list) =
+    let ``Standard symmetrical difference`` (elementsA: int list, elementsB: int list) =
         let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = AVLSet.symmDifference setA setB
@@ -170,7 +170,7 @@ module SetPropertyTests =
         |> should be True
 
     [<Property>]
-    let ``Symmetric difference via tree traversal`` (elementsA: int list, elementsB: int list) =
+    let ``Symmetrical difference via tree traversal`` (elementsA: int list, elementsB: int list) =
         let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = AVLSet.Traversal.symmDifference setA setB
@@ -234,7 +234,7 @@ module SetPropertyTests =
         |> should be True
 
     [<Property>]
-    let ``Parallel set symmetric difference with threads`` (elementsA: int list, elementsB: int list) =
+    let ``Parallel set symmetrical difference with threads`` (elementsA: int list, elementsB: int list) =
         let setA = elementsA |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let setB = elementsB |> List.fold (fun t e -> AVLSet.add e t) AVLSet.empty
         let symmDiffSet = ParallelAVLSet.symmDifference None setA setB
