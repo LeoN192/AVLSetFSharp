@@ -12,6 +12,9 @@ open AVLSet.Library
 /// </param>
 
 module ParallelAVLSet =
+    [<Literal>]
+    let HeightThreshold = 10
+
     let rec unionAsync threads set1 set2 =
         async {
             let maxSet, minSet = Tree.maxMinNodesByHeights set1 set2
@@ -19,18 +22,21 @@ module ParallelAVLSet =
             match maxSet, minSet with
             | Empty, _ -> return minSet
             | _, Empty -> return maxSet
-            | Node(_, v, ln, rn), _ ->
-                let lesser, greater, _ = Tree.split v minSet
+            | Node(h, v, ln, rn), _ ->
+                if h < HeightThreshold then
+                    return AVLSet.union maxSet minSet
+                else
+                    let lesser, greater, _ = Tree.split v minSet
 
-                let limit = defaultArg threads System.Environment.ProcessorCount
+                    let limit = defaultArg threads System.Environment.ProcessorCount
 
-                let left = unionAsync threads ln lesser
-                let right = unionAsync threads rn greater
+                    let left = unionAsync threads ln lesser
+                    let right = unionAsync threads rn greater
 
-                let! results = Async.Parallel([| left; right |], limit)
-                let leftUnion, rightUnion = results[0], results[1]
+                    let! results = Async.Parallel([| left; right |], limit)
+                    let leftUnion, rightUnion = results[0], results[1]
 
-                return Tree.join leftUnion v rightUnion
+                    return Tree.join leftUnion v rightUnion
         }
 
     let rec intersectionAsync threads set1 set2 =
@@ -40,22 +46,25 @@ module ParallelAVLSet =
             match maxSet, minSet with
             | Empty, _ -> return Empty
             | _, Empty -> return Empty
-            | Node(_, v, ln, rn), _ ->
-                let lesser, greater, wasFound = Tree.split v minSet
+            | Node(h, v, ln, rn), _ ->
+                if h < HeightThreshold then
+                    return AVLSet.intersection maxSet minSet
+                else
+                    let lesser, greater, wasFound = Tree.split v minSet
 
-                let limit = defaultArg threads System.Environment.ProcessorCount
+                    let limit = defaultArg threads System.Environment.ProcessorCount
 
-                let left = intersectionAsync threads ln lesser
-                let right = intersectionAsync threads rn greater
+                    let left = intersectionAsync threads ln lesser
+                    let right = intersectionAsync threads rn greater
 
-                let! results = Async.Parallel([| left; right |], limit)
-                let leftInter, rightInter = results[0], results[1]
+                    let! results = Async.Parallel([| left; right |], limit)
+                    let leftInter, rightInter = results[0], results[1]
 
-                return
-                    if wasFound then
-                        Tree.join leftInter v rightInter
-                    else
-                        Tree.merge leftInter rightInter
+                    return
+                        if wasFound then
+                            Tree.join leftInter v rightInter
+                        else
+                            Tree.merge leftInter rightInter
         }
 
     let rec differenceAsync threads minuendSet subtrahendSet =
@@ -63,22 +72,25 @@ module ParallelAVLSet =
             match minuendSet, subtrahendSet with
             | Empty, _ -> return Empty
             | _, Empty -> return minuendSet
-            | Node(_, v, ln, rn), _ ->
-                let lesser, greater, wasFound = Tree.split v subtrahendSet
+            | Node(h, v, ln, rn), _ ->
+                if h < HeightThreshold then
+                    return AVLSet.difference minuendSet subtrahendSet
+                else
+                    let lesser, greater, wasFound = Tree.split v subtrahendSet
 
-                let limit = defaultArg threads System.Environment.ProcessorCount
+                    let limit = defaultArg threads System.Environment.ProcessorCount
 
-                let left = differenceAsync threads ln lesser
-                let right = differenceAsync threads rn greater
+                    let left = differenceAsync threads ln lesser
+                    let right = differenceAsync threads rn greater
 
-                let! results = Async.Parallel([| left; right |], limit)
-                let leftDiff, rightDiff = results[0], results[1]
+                    let! results = Async.Parallel([| left; right |], limit)
+                    let leftDiff, rightDiff = results[0], results[1]
 
-                return
-                    if wasFound then
-                        Tree.merge leftDiff rightDiff
-                    else
-                        Tree.join leftDiff v rightDiff
+                    return
+                        if wasFound then
+                            Tree.merge leftDiff rightDiff
+                        else
+                            Tree.join leftDiff v rightDiff
         }
 
     let rec symmDifferenceAsync threads set1 set2 =
@@ -88,22 +100,25 @@ module ParallelAVLSet =
             match maxSet, minSet with
             | Empty, _ -> return minSet
             | _, Empty -> return maxSet
-            | Node(_, v, ln, rn), _ ->
-                let lesser, greater, wasFound = Tree.split v minSet
+            | Node(h, v, ln, rn), _ ->
+                if h < HeightThreshold then
+                    return AVLSet.symmDifference maxSet minSet
+                else
+                    let lesser, greater, wasFound = Tree.split v minSet
 
-                let limit = defaultArg threads System.Environment.ProcessorCount
+                    let limit = defaultArg threads System.Environment.ProcessorCount
 
-                let left = symmDifferenceAsync threads ln lesser
-                let right = symmDifferenceAsync threads rn greater
+                    let left = symmDifferenceAsync threads ln lesser
+                    let right = symmDifferenceAsync threads rn greater
 
-                let! results = Async.Parallel([| left; right |], limit)
-                let leftSymm, rightSymm = results[0], results[1]
+                    let! results = Async.Parallel([| left; right |], limit)
+                    let leftSymm, rightSymm = results[0], results[1]
 
-                return
-                    if wasFound then
-                        Tree.merge leftSymm rightSymm
-                    else
-                        Tree.join leftSymm v rightSymm
+                    return
+                        if wasFound then
+                            Tree.merge leftSymm rightSymm
+                        else
+                            Tree.join leftSymm v rightSymm
         }
 
     let union threads t1 t2 =
