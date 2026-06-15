@@ -12,7 +12,8 @@ open AVLSet.Library
 /// </param>
 
 module ParallelAVLSet =
-    let [<Literal>] HeightThreshold = 10
+    [<Literal>]
+    let HeightThreshold = 10
 
     let rec unionAsync threads set1 set2 =
         async {
